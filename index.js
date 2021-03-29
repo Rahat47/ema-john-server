@@ -10,6 +10,7 @@ const dbUser = process.env.DB_USER
 const dbName = process.env.DB_NAME
 const dbPass = process.env.DB_PASSWORD
 let productDB
+let shipmentDB
 const app = express()
 
 app.use(cors())
@@ -26,6 +27,7 @@ const uri = `mongodb+srv://${dbUser}:${dbPass}@cluster0.77zrg.mongodb.net/${dbNa
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 client.connect(err => {
     productDB = client.db(dbName).collection("products");
+    shipmentDB = client.db(dbName).collection("shipments")
     console.log(`${dbName} database is connected`);
     app.listen(port, () => {
         console.log(`App Running at ${port}`)
@@ -35,14 +37,14 @@ client.connect(err => {
 
 //! ROUTES
 app.get("/", (req, res) => {
-    res.send("Hello from Ema John API.")
+    res.send("Hello from Ema John Backend API.")
 })
 
 app.post("/add-product", async (req, res) => {
-    const products = req.body
+    const product = req.body
     try {
-        const result = await productDB.insertMany(products)
-        const data = result.ops
+        const result = await productDB.insertOne(product)
+        const data = result.ops[0]
         res.status(200).json(data)
     } catch (error) {
         res.status(500).json(error)
@@ -80,5 +82,16 @@ app.post("/products-by-key", async (req, res) => {
         res.status(500).json(error)
     }
 
+})
+
+app.post("/shipment", async (req, res) => {
+    const shipmentData = req.body
+    try {
+        const response = await shipmentDB.insertOne(shipmentData)
+        const data = response.ops[0]
+        res.status(200).json(data)
+    } catch (error) {
+        res.status(500).json(error)
+    }
 })
 
